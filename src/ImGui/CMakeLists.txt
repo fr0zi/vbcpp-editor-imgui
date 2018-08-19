@@ -1,4 +1,4 @@
-set (GUI_SOURCES 
+set (IMGUI_SOURCES 
     src/ImGui/imgui.cpp
     src/ImGui/imgui_demo.cpp
     src/ImGui/imgui_draw.cpp
@@ -6,7 +6,7 @@ set (GUI_SOURCES
     src/ImGui/ImguiWindowsFileIO.cpp
 )
 
-set (GUI_HEADERS 
+set (IMGUI_HEADERS 
     src/ImGui/imgui.h
     src/ImGui/imconfig.h
     src/ImGui/imgui_impl_glfw_gl3.h
@@ -19,5 +19,5 @@ set (GUI_HEADERS
 
 #source_group("ImGui" FILES ${GUI_SOURCES} ${GUI_HEADERS})
 
-set (GUI_SOURCES ${GUI_SOURCES} PARENT_SCOPE)
-set (GUI_HEADERS ${GUI_HEADERS} PARENT_SCOPE)
+set (IMGUI_SOURCES ${IMGUI_SOURCES} PARENT_SCOPE)
+set (IMGUI_HEADERS ${IMGUI_HEADERS} PARENT_SCOPE)

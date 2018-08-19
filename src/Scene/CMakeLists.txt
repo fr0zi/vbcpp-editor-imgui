@@ -1,8 +1,10 @@
-set (SCENE_SOURCES 
-
+set (SCENE_SOURCES
+    src/Scene/Transform.cpp
+    src/Scene/SceneObject.cpp
 )
 
-set (SCENE_HEADERS 
+set (SCENE_HEADERS
+    src/Scene/Transform.h
     src/Scene/SceneObject.h
 )
 

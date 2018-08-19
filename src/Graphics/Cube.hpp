@@ -87,11 +87,16 @@ class Cube
             _indices[33] = 2;
             _indices[34] = 6;
             _indices[35] = 5;
+
+            createBufferObjects();
         }
 
         ~Cube()
         {
             std::cout << "Cube: Destructor\n";
+
+            glDeleteVertexArrays(1, &_VAO);
+            glDeleteBuffers(1, &_VBO);
         }
 
         unsigned int getVertexCount()
@@ -114,7 +119,46 @@ class Cube
             return _indices.data();
         }
 
+        GLuint& getVAO()
+        {
+            return _VAO;
+        }
+
+        void createBufferObjects()
+        {
+            glGenVertexArrays(1, &_VAO);
+
+            glGenBuffers(1, &_VBO);
+
+            glGenBuffers(1, &_EBO);
+
+            // Vertex data
+            glBindVertexArray(_VAO);
+            glBindBuffer(GL_ARRAY_BUFFER, _VBO);
+            glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(gfx::Vertex), _vertices.data(), GL_STATIC_DRAW);
+
+            // Index data
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(unsigned int), _indices.data(), GL_STATIC_DRAW);
+
+    
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(0);
+
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+            glEnableVertexAttribArray(1);
+
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+            glEnableVertexAttribArray(2);
+
+            glBindVertexArray(0);
+        }
+
     private:
+        GLuint _VAO;
+        GLuint _VBO;
+        GLuint _EBO;
+
         std::vector<gfx::Vertex>    _vertices;
         std::vector<unsigned int>   _indices;
 };

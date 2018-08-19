@@ -9,13 +9,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(libs/glew)
 add_subdirectory(libs/glfw)
-#add_subdirectory(libs/glm)
+
 
 add_subdirectory(src/ImGui)
-source_group("ImGui" FILES ${GUI_SOURCES} ${GUI_HEADERS})
+source_group("ImGui" FILES ${IMGUI_SOURCES} ${IMGUI_HEADERS})
 
-add_subdirectory(src/Renderer)
-source_group("Renderer" FILES ${RENDERER_SOURCES} ${RENDERER_HEADERS})
+add_subdirectory(src/Editor)
+source_group("GUI" FILES ${EDITOR_SOURCES} ${EDITOR_HEADERS})
+
+add_subdirectory(src/Graphics)
+source_group("Graphics" FILES ${GRAPHICS_SOURCES} ${GRAPHICS_HEADERS})
 
 add_subdirectory(src/Scene)
 source_group("Scene" FILES ${SCENE_SOURCES} ${SCENE_HEADERS})
@@ -44,21 +47,19 @@ include_directories (libs/glfw/include)
 
 include_directories (libs/glm/include)
 
-add_executable(${BIN_NAME} 
+add_executable(${BIN_NAME}
+                    ${IMGUI_SOURCES}
+                    ${IMGUI_HEADERS}
                     ${GUI_SOURCES} 
                     ${GUI_HEADERS}
                     ${WINDOW_SOURCES}
                     ${WINDOW_HEADERS}
-                    ${RENDERER_SOURCES}
-                    ${RENDERER_HEADERS}
+                    ${GRAPHICS_SOURCES}
+                    ${GRAPHICS_HEADERS}
                     ${SCENE_SOURCES}
                     ${SCENE_HEADERS}
                     ${SOURCES}
 )
-
-#add_custom_command(TARGET ${BIN_NAME} PRE_BUILD
-#                   COMMAND ${CMAKE_COMMAND} -E copy_folder
-#                       ${CMAKE_SOURCE_DIR}/Data ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data)
 
 set_target_properties (${BIN_NAME} PROPERTIES VS_STARTUP_PROJECT ${BIN_NAME})
 

@@ -1,5 +1,5 @@
-#ifndef VBIMAGE_H
-#define VBIMAGE_H
+#ifndef IMAGE_H
+#define IMAGE_H
 
 #include <string>
 #include <memory>
@@ -7,25 +7,25 @@
 namespace gfx
 {
 
-class VBImage
+class Image
 {
     public:
         // Default constructor
-        VBImage(const std::string filename);
+        Image(const std::string filename);
 
         // Copy constructor
-        VBImage(const VBImage& other)
+        Image(const Image& other)
         {
             _data = other._data;
         }
 
         // Move constructor
-        VBImage(VBImage&& other) noexcept
+        Image(Image&& other) noexcept
         {
             
         }
 
-        ~VBImage() noexcept;
+        ~Image() noexcept;
 
         unsigned char* getData() const;
 
@@ -47,4 +47,4 @@ class VBImage
 
 } // namespace
 
-#endif // VBIMAGE_H
+#endif // IMAGE_H
