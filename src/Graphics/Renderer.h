@@ -17,6 +17,7 @@ namespace gfx
 
             void addRenderObject(std::shared_ptr<SceneObject> object);
             void render();
+            void render(std::vector<std::shared_ptr<SceneObject>>& scene);
 
             void setClearColor(const glm::vec4 color);
         

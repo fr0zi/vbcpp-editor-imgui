@@ -39,6 +39,30 @@ namespace gfx
         }
     }
 
+    void Renderer::render(std::vector<std::shared_ptr<SceneObject>>& scene)
+    {
+        clearScreen();
+
+        for (auto obj : scene)
+        {
+            if (obj->getTexture())
+            {
+                obj->getTexture()->bind();
+            }
+
+            if (obj->getMesh())
+            {
+                glBindVertexArray(obj->getMesh()->getVAO());
+
+                glDrawElements(GL_TRIANGLES, obj->getMesh()->getIndexCount(), GL_UNSIGNED_INT, 0);
+
+                glBindVertexArray(0);
+            }
+    
+            obj->getTexture()->release();
+        }
+    }
+
     void Renderer::setClearColor(const glm::vec4 color)
     {
         _clearColor = color;

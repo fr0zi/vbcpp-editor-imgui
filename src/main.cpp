@@ -29,6 +29,8 @@
 int W_WIDTH = 1366;
 int W_HEIGHT = 768;
 
+std::vector<std::shared_ptr<SceneObject>> sceneObjects;
+
 struct Config
 {
     Config()
@@ -59,11 +61,12 @@ int main()
 
     glEnable(GL_CULL_FACE);
 
-    //EditorGUI editor(win.getWindow());
+    EditorGUI editor(win.getWindow());
+    
+editor.setSceneObjects(&sceneObjects);
+    
 
     //ImGui_ImplGlfwGL3_Init(win.getWindow(), true);
-    
-    
 
     bool show_main_menu = true;
     bool show_test_window = true;
@@ -78,8 +81,16 @@ int main()
     
     scnObj->setMesh(cube);
     scnObj->setTexture(texture);
+    scnObj->setName("Cube001");
 
-    renderer.addRenderObject(scnObj);
+
+    sceneObjects.push_back(scnObj);
+
+
+
+    std::cout << "Scene objects: " << sceneObjects.size() << '\n';
+
+    //editor.setActiveSceneObject(scnObj.get());
 
     std::vector<std::string> defines = {};
     GLuint shaderID = ShaderLoader::loadShader("Data/shader.vert", "Data/shader.frag");
@@ -110,9 +121,6 @@ int main()
 
 	while (win.isOpened())
     {
-        //glClearColor(cfg.clear_color.x, cfg.clear_color.y, cfg.clear_color.z, cfg.clear_color.w);
-        //glClear(GL_COLOR_BUFFER_BIT);
-
         glUseProgram(shaderID);
 
         glm::mat4 MVP = projectionMatrix * CameraMatrix * scnObj->getTransform().getModelMatrix();
@@ -120,10 +128,9 @@ int main()
         // Ustawiamy matryce obiektu, potem zmienić na MVP
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(MVP));
 
-        renderer.render();
+        //renderer.render();
+        renderer.render(sceneObjects);
 
-        // Rendering GUI
-        //ImGui_ImplGlfwGL3_NewFrame();
         /*
         if (guiIO.WantCaptureMouse)
             mouseState = "Captured";
@@ -195,7 +202,7 @@ int main()
         
         //ImGui::Render();
 
-        //editor.Render();
+        editor.Render();
 
         win.swapBuffers();
         win.updateEvents();

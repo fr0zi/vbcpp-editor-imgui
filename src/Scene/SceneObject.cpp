@@ -35,3 +35,13 @@ std::shared_ptr<Cube> SceneObject::getMesh()
 {
     return _mesh;
 }
+
+void SceneObject::setName(std::string name)
+{
+    _name = name;
+}
+
+const std::string SceneObject::getName() const
+{
+    return _name;
+}
