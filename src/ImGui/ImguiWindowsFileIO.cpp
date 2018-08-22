@@ -8,9 +8,13 @@
 #include <experimental/filesystem>
 
 #if defined(_WIN32)
+#define NOMINMAX
 #include <windows.h>
 #include <direct.h>
 #include <tchar.h>
+#include <filesystem>
+#include <string>
+#include <io.h>
 #define GetCurrentDir _getcwd
 #else
 #include <unistd.h>
@@ -20,6 +24,12 @@
 #endif
 
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
+
+#ifdef _MSC_VER 
+//not #if defined(_WIN32) || defined(_WIN64) because we have strncasecmp in mingw
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
 
 #if defined(ICON_FA_CARET_DOWN)
 #define CARET_DOWN ICON_FA_CARET_DOWN
@@ -464,8 +474,12 @@ bool fileIOWindow(
 
     toCStringVec( file_list, local_files_readable );
 
-    if ( directory_browsing )
+    if( directory_browsing )
+    {
         size.y += std::min( size_t( 8 ), std::max( dir_list.size(), file_list.size() ) ) *  GetFontSize();
+        //size.y += std::min(2,3);
+    }
+        
 
     SetNextWindowSize( size );
     Begin( "FileIO" );
