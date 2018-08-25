@@ -1,7 +1,12 @@
 #include "SceneObject.h"
 
-SceneObject::SceneObject()
-    : _texture(nullptr), _mesh(nullptr)
+SceneObject::SceneObject(std::string name)
+    : _name(name), _texture(nullptr), _mesh(nullptr)
+{
+
+}
+
+SceneObject::~SceneObject()
 {
 
 }

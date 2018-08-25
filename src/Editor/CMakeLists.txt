@@ -1,9 +1,7 @@
 set (EDITOR_SOURCES 
-    src/Editor/MainMenu.cpp
 )
 
 set (EDITOR_HEADERS 
-    src/Editor/MainMenu.h
     src/Editor/Editor.h
 )
 

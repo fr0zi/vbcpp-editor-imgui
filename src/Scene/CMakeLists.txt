@@ -1,11 +1,13 @@
 set (SCENE_SOURCES
     src/Scene/Transform.cpp
     src/Scene/SceneObject.cpp
+    src/Scene/CameraStatic.cpp
 )
 
 set (SCENE_HEADERS
     src/Scene/Transform.h
     src/Scene/SceneObject.h
+    src/Scene/CameraStatic.h
 )
 
 set (SCENE_SOURCES ${SCENE_SOURCES} PARENT_SCOPE)

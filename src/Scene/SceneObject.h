@@ -1,5 +1,4 @@
-#ifndef SCENEOBJECT_H
-#define SCENEOBJECT_H
+#pragma once
 
 #include <string>
 #include <memory>
@@ -12,7 +11,8 @@
 class SceneObject
 {
     public:
-        SceneObject();
+        SceneObject(std::string name = "SceneObject");
+        virtual ~SceneObject();
 
         scene::Transform& getTransform();
         
@@ -30,11 +30,9 @@ class SceneObject
 
         const std::string getName() const;
 
-    private:
+    protected:
         std::string                     _name;
         scene::Transform                _transform;
         std::shared_ptr<gfx::Texture2D> _texture;
         std::shared_ptr<Cube>           _mesh;
 };
-
-#endif // SCENEOBJECT_H

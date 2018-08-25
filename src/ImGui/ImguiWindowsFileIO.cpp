@@ -8,11 +8,11 @@
 #include <experimental/filesystem>
 
 #if defined(_WIN32)
-#define NOMINMAX
+//#define NOMINMAX
 #include <windows.h>
 #include <direct.h>
 #include <tchar.h>
-#include <filesystem>
+//#include <filesystem>
 #include <string>
 #include <io.h>
 #define GetCurrentDir _getcwd

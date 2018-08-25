@@ -15,11 +15,11 @@ class EditorGUI
     public:
     EditorGUI(GLFWwindow* window)
     : _sceneObject(nullptr),
-      showObjectProperties(false),
-      showDemo(true),
+      showObjectProperties(true),
+      showDemo(false),
       showSceneGraph(true)
     {
-        ImGui_ImplGlfwGL3_Init(window, true);
+        ImGui_ImplGlfwGL3_Init(window, false);
     }
 
     ~EditorGUI()
@@ -51,7 +51,6 @@ class EditorGUI
 
         if (showDemo)
         {
-            //ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver);
             ImGui::ShowTestWindow(&showDemo);
         }
 
@@ -67,11 +66,6 @@ class EditorGUI
                 //ShowExampleMenuFile();
                 ImGui::EndMenu();
             }
-            if (ImGui::BeginMenu("Objects"))
-            {
-                ImGui::MenuItem("Properties", NULL, &showObjectProperties);
-                ImGui::EndMenu();
-            }
             if ( ImGui::BeginMenu("Edit") )
             {
                 if ( ImGui::MenuItem("Undo", "CTRL+Z") ) {}
@@ -82,39 +76,55 @@ class EditorGUI
                 if ( ImGui::MenuItem("Paste", "CTRL+V") ) {}
                 ImGui::EndMenu();
             }
+            if (ImGui::BeginMenu("Windows"))
+            {
+                ImGui::MenuItem("Object Properties", NULL, &showObjectProperties);
+                ImGui::MenuItem("Demo", NULL, &showDemo);
+                ImGui::EndMenu();
+            }
             ImGui::EndMainMenuBar();
         }
     }
 
     void drawObjectProperties()
     {
-        ImGui::Text("Printing unusually long amount of text.");
+        if (ImGui::Begin("Object Properties", &showObjectProperties))
+        {
+            if (_sceneObject)
+            {
+                // Object's name
+                char buffer[50];
 
-        scene::Transform transform;
+                strncpy(buffer, _sceneObject->getName().c_str(), sizeof buffer);
+                
+                buffer[sizeof buffer - 1] = '\0';
 
-        if (_sceneObject)
-            transform = _sceneObject->getTransform();
-        // Position
-        ImGui::DragFloat3("Position", (float*)&transform.getPositionRef(), 0.01f, 0.0f, 0.0f);
+                if (ImGui::InputText("Name", buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_EnterReturnsTrue ) )
+                {
+                    _sceneObject->setName(std::string(buffer));
+                }   
 
-        // Rotation
-        ImGui::DragFloat3("Rotation", (float*)&transform.getRotationRef(), 0.1f, 0.0f, 0.0f);
+                ImGui::Separator();
 
-        // Scale
-        ImGui::DragFloat3("Scale", (float*)&transform.getScaleRef(), 0.1f, 0.0f, 0.0f);
+                // Objects transformation
+                ImGui::Text("Transformation");
 
-        if (_sceneObject)
-            _sceneObject->setTransform(transform);
-        //char buffer[50];
-        //strncpy(buffer, object->getTextureName().c_str(), sizeof buffer);
-        //buffer[sizeof buffer - 1] = '\0';
+                scene::Transform transform;
 
+                transform = _sceneObject->getTransform();
+                // Position
+                ImGui::DragFloat3("Position", (float*)&transform.getPositionRef(), 0.01f, 0.0f, 0.0f);
 
+                // Rotation
+                ImGui::DragFloat3("Rotation", (float*)&transform.getRotationRef(), 0.1f, 0.0f, 0.0f);
 
-        //if (ImGui::InputText("input text", buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_EnterReturnsTrue ) )
-        //{
-        //    object->setTextureName(std::string(buffer));
-        //}
+                // Scale
+                ImGui::DragFloat3("Scale", (float*)&transform.getScaleRef(), 0.1f, 0.0f, 0.0f);
+
+                _sceneObject->setTransform(transform);
+            }
+        }
+        ImGui::End();
     }
 
     void drawSceneGraph()
@@ -122,48 +132,56 @@ class EditorGUI
         static int selection_mask = (1 << 2);
         static int node_clicked = -1;
 
-        if (ImGui::TreeNode("Advanced, with Selectable nodes"))
+        if (ImGui::Begin("Scene Graph", &showObjectProperties))
         {
-            int counter = 0;
-            
-            for (; counter < _sceneObjects->size(); ++counter)
+            if (ImGui::TreeNode("Root"))
             {
-                std::shared_ptr<SceneObject> scnObj = _sceneObjects->at(counter);
+                int counter = 0;
+            
+                for (; counter < _sceneObjects->size(); ++counter)
+                {
+                    std::shared_ptr<SceneObject> scnObj = _sceneObjects->at(counter);
 
-                // Disable the default open on single-click behavior and pass in Selected flag according to our selection state.
+                    // Disable the default open on single-click behavior and pass in Selected flag according to our selection state.
                     ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | 
                         ImGuiTreeNodeFlags_OpenOnDoubleClick | 
                         ((selection_mask & (1 << counter)) ? ImGuiTreeNodeFlags_Selected : 0);
 
-                // Node
-                bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)counter, node_flags, scnObj->getName().c_str());
-                if (ImGui::IsItemClicked())
-                {
-                    node_clicked = counter;
-                    _sceneObject = scnObj.get();
-                }
-
-                if (node_open)
-                {
-                    ImGui::Text("Node selected, %d", node_clicked);
-                    ImGui::TreePop();
-                }
+                    // Node
+                    bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)counter, node_flags, scnObj->getName().c_str());
+                    //bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)counter, node_flags, "Selectable node %d", counter);
+                    if (ImGui::IsItemClicked())
+                    {
+                        node_clicked = counter;
+                        _sceneObject = scnObj.get();
+                    }
                 
+                    if (node_open)
+                    {
+                        //ImGui::Text("Node selected, %d", node_clicked);
+                        ImGui::TreePop();
+                    }
+                
+                    //ImGui::TreePop();
+                }
                 ImGui::TreePop();
+            
+                if (node_clicked != -1)
+                {
+                    // Update selection state. Process outside of tree loop to avoid visual inconsistencies during the clicking-frame.
+                    if (ImGui::GetIO().KeyCtrl)
+                        selection_mask ^= (1 << node_clicked);          // CTRL+click to toggle
+                    else //if (!(selection_mask & (1 << node_clicked))) // Depending on selection behavior you want, this commented bit preserve selection when clicking on item that is part of the selection
+                        selection_mask = (1 << node_clicked);           // Click to single-select
+                }
             }
-            if (node_clicked != -1)
-            {
-                // Update selection state. Process outside of tree loop to avoid visual inconsistencies during the clicking-frame.
-                if (ImGui::GetIO().KeyCtrl)
-                    selection_mask ^= (1 << node_clicked);          // CTRL+click to toggle
-                else //if (!(selection_mask & (1 << node_clicked))) // Depending on selection behavior you want, this commented bit preserve selection when clicking on item that is part of the selection
-                    selection_mask = (1 << node_clicked);           // Click to single-select
-            }
-            //ImGui::TreePop();
         }
+        ImGui::End();
+    }
 
-        
-        //_sceneObject = scnObj.get();
+    bool GUIhasFocus()
+    {
+        return (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard);
     }
 
     private:
