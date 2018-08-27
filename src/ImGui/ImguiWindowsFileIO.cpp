@@ -7,12 +7,17 @@
 
 #include <experimental/filesystem>
 
+#ifdef _MSC_VER 
+//not #if defined(_WIN32) || defined(_WIN64) because we have strncasecmp in mingw
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#define NOMINMAX
+#endif
+
 #if defined(_WIN32)
-//#define NOMINMAX
 #include <windows.h>
 #include <direct.h>
 #include <tchar.h>
-//#include <filesystem>
 #include <string>
 #include <io.h>
 #define GetCurrentDir _getcwd
@@ -25,11 +30,7 @@
 
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
-#ifdef _MSC_VER 
-//not #if defined(_WIN32) || defined(_WIN64) because we have strncasecmp in mingw
-#define strncasecmp _strnicmp
-#define strcasecmp _stricmp
-#endif
+
 
 #if defined(ICON_FA_CARET_DOWN)
 #define CARET_DOWN ICON_FA_CARET_DOWN
@@ -94,7 +95,7 @@ string MiniPath::filePath() const
 
 void MiniPath::fromString (const string& file_path, char delim)
 {
-    int last_delim_pos = file_path.find_last_of (delim);
+    size_t last_delim_pos = file_path.find_last_of (delim);
     name = file_path.substr (last_delim_pos+1);
     path = file_path.substr (0, last_delim_pos+1);
 }
@@ -508,7 +509,7 @@ bool fileIOWindow(
 
         if (ImGui::BeginPopup("RecentFiles"))
         {
-            if( ListBox( "", &recent_selected, recent.data(), recent.size() ) )
+            if( ListBox( "", &recent_selected, recent.data(), static_cast<int>(recent.size()) ) )
             {
                 current_mini_path.fromString( recently_used_files[recent_selected], sys_delim[0] );
                 if( !current_mini_path.getName().empty() )
