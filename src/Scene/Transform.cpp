@@ -40,6 +40,11 @@ namespace scene
         return _modelMatrix;
     }
 
+    void Transform::update()
+    {
+        updateModelMatrix();
+    }
+
     void Transform::updateModelMatrix()
     {
         _modelMatrix = glm::mat4(1.0f);

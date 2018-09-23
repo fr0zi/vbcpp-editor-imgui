@@ -24,7 +24,7 @@ class CameraStatic
         glm::mat4& getProjectionMatrix();        
 
     protected:
-        void updateCameraViewProjection();
+        virtual void updateCameraViewProjection();
 
         scene::Transform    _transform;
 

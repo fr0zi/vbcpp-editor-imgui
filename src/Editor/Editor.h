@@ -184,7 +184,14 @@ class EditorGUI
         return (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard);
     }
 
+    ImGuiIO& getIO()
+    {
+        return io;//ImGui::GetIO();
+    }
+
     private:
+        ImGuiIO io;
+
         SceneObject* _sceneObject;
         std::vector<std::shared_ptr<SceneObject>>* _sceneObjects;
 

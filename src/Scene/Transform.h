@@ -23,6 +23,8 @@ namespace scene
 
         const glm::mat4& getModelMatrix();
 
+        void update();
+
 
         private:
             glm::mat4 _modelMatrix;

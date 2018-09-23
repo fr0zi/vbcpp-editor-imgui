@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <memory>
 #include <vector>
+#include <algorithm>
 
 #include "Window/Window.h"
 
@@ -12,16 +13,31 @@
 
 #include "Scene/SceneObject.h"
 #include "Scene/CameraStatic.h"
+#include "Scene/CameraFPS.h"
 
 #include "Editor/Editor.h"
+
+//#include "Editor/MainWindow.h"
 
 int W_WIDTH = 1366;
 int W_HEIGHT = 768;
 
+double lastxPos, lastYpos;
+
 bool cameraActive = false;
-std::shared_ptr<CameraStatic> camera;
+// std::shared_ptr<CameraStatic> camera;
+std::shared_ptr<CameraFPS> camera;
+
+std::unique_ptr<EditorGUI> editor = nullptr;
+//static ImGuiIO io;
 
 float pos = 0.0f;
+
+template <typename T>
+T clamp(const T& what, const T& a, const T& b)
+{
+       return std::min(b, std::max(what, a));
+}
 
 std::vector<std::shared_ptr<SceneObject>> sceneObjects;
 
@@ -30,12 +46,30 @@ static void error_callback(int error, const char* description)
     fprintf(stderr, "Error %d: %s\n", error, description);
 }
 
+// Callback dla wciśnięcia klawiszy
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_L && action == GLFW_PRESS)
-	{
-		std::cout << "Key K pressed\n";
-	}
+    ImGuiIO& io = ImGui::GetIO();
+    if (action == GLFW_PRESS)
+    {
+        io.KeysDown[key] = true;
+    }
+    if (action == GLFW_RELEASE)
+        io.KeysDown[key] = false;
+
+    (void)mods; // Modifiers are not reliable across systems
+    io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
+    io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
+    io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
+    io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+}
+
+// Callback do wpisywania znaków
+void char_callback(GLFWwindow*, unsigned int c)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    if (c > 0 && c < 0x10000)
+        io.AddInputCharacter((unsigned short)c);
 }
 
 // Callback dla pojedynczych zdarzeń - przyciski myszy
@@ -57,41 +91,38 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 }
 
-void processInput(GLFWwindow* window)
-{
+void processInput(GLFWwindow* window, double deltaTime)
+{   
     if (cameraActive)
     {
         //std::cout << "Camera active\n";
     
         if (glfwGetKey( window, GLFW_KEY_D ) == GLFW_PRESS)
 	    {
-            //std::cout << "Move right\n";
-		    camera->getTransform().getPositionRef().x += 0.001f;
+            camera->move(STRAFE_RIGHT, deltaTime);
 	    }
 
 	    if (glfwGetKey( window, GLFW_KEY_A ) == GLFW_PRESS)
 	    {
-            //std::cout << "Move left\n";
-		    camera->getTransform().getPositionRef().x -= 0.001f;
+            camera->move(STRAFE_LEFT, deltaTime);
 	    }
 
         if (glfwGetKey( window, GLFW_KEY_W ) == GLFW_PRESS)
 	    {
-            //std::cout << "Move left\n";
-		    camera->getTransform().getPositionRef().z -= 0.001f;
+            camera->move(FORWARD, deltaTime);
 	    }
 
         if (glfwGetKey( window, GLFW_KEY_S ) == GLFW_PRESS)
 	    {
-            //std::cout << "Move left\n";
-		    camera->getTransform().getPositionRef().z += 0.001f;
+            camera->move(BACKWARD, deltaTime);
 	    }
-    }
-
+    } 
 }
+
 
 int main()
 {
+    
     glfwSetErrorCallback(error_callback);
 
 	Window win;    
@@ -99,13 +130,14 @@ int main()
     win.createWindow(W_WIDTH, W_HEIGHT, 10, 40);
     win.setWindowTitle("VirtualBus C++ - Map Editor");
 
+    gfx::Renderer renderer;
+    editor.reset(new EditorGUI(win.getWindow()));
+
     glfwSetMouseButtonCallback(win.getWindow(), mouse_button_callback);
     glfwSetKeyCallback(win.getWindow(), key_callback);
+    glfwSetCharCallback(win.getWindow(), char_callback);
 
-    gfx::Renderer renderer;
-    EditorGUI editor(win.getWindow());
-    
-    editor.setSceneObjects(&sceneObjects);
+    editor->setSceneObjects(&sceneObjects);
     
     // Object 1
     std::shared_ptr<SceneObject> scnObj(new SceneObject);
@@ -121,8 +153,6 @@ int main()
 
     // Object 2
     std::shared_ptr<SceneObject> scnObj2(new SceneObject);
-    //std::shared_ptr<gfx::Texture2D> texture2(new gfx::Texture2D("Data/brick.jpg") );
-    //std::shared_ptr<Cube> cube2(new Cube);
     
     scnObj2->setMesh(cube);
     scnObj2->setTexture(texture);
@@ -132,7 +162,8 @@ int main()
     sceneObjects.push_back(scnObj2);
 
     // Camera
-    camera.reset( new CameraStatic(glm::vec2(W_WIDTH, W_HEIGHT)) );
+    // camera.reset( new CameraStatic(glm::vec2(W_WIDTH, W_HEIGHT)) );
+    camera.reset( new CameraFPS(glm::vec2(W_WIDTH, W_HEIGHT)) );
     camera->setLookAt(glm::vec3(0.0f, 0.0f, 0.0f));
     camera->getTransform().setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 
@@ -143,10 +174,49 @@ int main()
 
     renderer.setCamera(camera);
 
+    double xpos, ypos;
+
+// Time calculation variables
+    double deltaTime = 0.0;
+    double accumulator = 0.0;
+
+    const double TIME_STEP = 1/60.0f;
+    const double MAX_ACCUMULATED_TIME = 1.0;
+
+    double timePhysicsCurr;
+    double timePhysicsPrev;
+    timePhysicsPrev = timePhysicsCurr = glfwGetTime();
+
+    //how long ago FPS counter was updated
+    double lastFPSupdate = timePhysicsCurr;
+
+    int nbFrames = 0;
+
+
 	while (win.isOpened())
     {   
-        if(!editor.GUIhasFocus())
-            processInput(win.getWindow());
+        nbFrames++;
+
+
+        timePhysicsCurr = glfwGetTime();
+        deltaTime = timePhysicsCurr - timePhysicsPrev;
+        timePhysicsPrev = timePhysicsCurr;
+
+        deltaTime = std::max(0.0, deltaTime);
+        accumulator += deltaTime;
+        accumulator = clamp(accumulator, 0.0, MAX_ACCUMULATED_TIME);
+
+
+        if(!editor->GUIhasFocus())
+            processInput(win.getWindow(), deltaTime);
+
+        while ( accumulator > TIME_STEP )
+        {
+            // fixed time stuff
+
+            accumulator -= TIME_STEP;
+        }
+
 
         renderer.render(sceneObjects);
 
@@ -172,7 +242,20 @@ int main()
         }  
         */
 
-        editor.Render();
+        glfwGetCursorPos(win.getWindow(), &xpos, &ypos);
+
+        if (cameraActive)
+        {   
+            float dx = (xpos - lastxPos) * deltaTime;
+            float dy = (ypos - lastYpos) * deltaTime;
+
+            camera->rotateFromMouse(dx, dy);
+        }
+        
+        lastxPos = xpos;
+        lastYpos = ypos; 
+
+        editor->Render();
 
         win.swapBuffers();
         win.updateEvents();
