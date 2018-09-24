@@ -56,6 +56,11 @@ class EditorGUI
             ImGui::ShowTestWindow(&showDemo);
         }
 
+        if (showCameraFPSSettings)
+        {
+            drawCameraFPSSettings();
+        }
+
         ImGui::Render();
     }
 
@@ -191,10 +196,13 @@ class EditorGUI
                 float movementSpeed = _activeCamera->getMovementSpeed();
                 float rotationSpeed = _activeCamera->getRotationSpeed();
 
-                ImGui::DragFloat("Movement speed", , 0.01f, 0.0f, 0.0f);
+                ImGui::DragFloat("Movement speed", &movementSpeed, 0.01f, 0.0f, 10.0f);
 
                 // Rotation
-                ImGui::DragFloat3("Rotation speed", , 0.1f, 0.0f, 0.0f);
+                ImGui::DragFloat("Rotation speed", &rotationSpeed, 0.01f, 0.0f, 1.0f);
+
+                _activeCamera->setMovementSpeed(movementSpeed);
+                _activeCamera->setRotationSpeed(rotationSpeed);
             }
         }
         ImGui::End();
