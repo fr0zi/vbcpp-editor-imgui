@@ -2,7 +2,7 @@
 
 CameraFPS::CameraFPS(glm::vec2 screenSize)
 : CameraStatic(screenSize),
-  _movementSpeed(1.0f), _rotationSpeed(200.0f),
+  _movementSpeed(1.0f), _rotationSpeed(0.2f),
   _yaw(-90.0f), _pitch(0.0f)
 {
     updateCameraVectors();
@@ -13,7 +13,7 @@ CameraFPS::~CameraFPS()
 
 }
 
-void CameraFPS::rotateFromMouse(float posX, float posY)
+void CameraFPS::rotateFromMouse(double posX, double posY)
 {
     posX *= _rotationSpeed;
     posY *= _rotationSpeed;
@@ -52,6 +52,27 @@ void CameraFPS::move(MovementDirection direction, double deltaTime)
         break;
     }
 }
+
+const float CameraFPS::getMovementSpeed() const
+{
+    return _movementSpeed;
+}
+
+const float CameraFPS::getRotationSpeed() const
+{
+    return _rotationSpeed;
+}
+
+void CameraFPS::setMovementSpeed(const float speed)
+{
+    _movementSpeed = speed;
+}
+
+void CameraFPS::setRotationSpeed(const float speed)
+{
+    _rotationSpeed = speed;
+}
+
 
 void CameraFPS::updateCameraVectors()
 {

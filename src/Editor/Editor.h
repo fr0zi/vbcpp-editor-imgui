@@ -5,6 +5,7 @@
 #include "../ImGui/ImguiWindowsFileIO.hpp"
 
 #include "../Scene/SceneObject.h"
+#include "../Scene/CameraFPS.h"
 
 #include <iostream>
 #include <cstring>
@@ -14,10 +15,11 @@ class EditorGUI
 {
     public:
     EditorGUI(GLFWwindow* window)
-    : _sceneObject(nullptr),
+    : _sceneObject(nullptr), _activeCamera(nullptr),
       showObjectProperties(true),
       showDemo(false),
-      showSceneGraph(true)
+      showSceneGraph(true),
+      showCameraFPSSettings(false)
     {
         ImGui_ImplGlfwGL3_Init(window, false);
     }
@@ -79,6 +81,7 @@ class EditorGUI
             if (ImGui::BeginMenu("Windows"))
             {
                 ImGui::MenuItem("Object Properties", NULL, &showObjectProperties);
+                ImGui::MenuItem("CameraFPS Settings", NULL, &showCameraFPSSettings);
                 ImGui::MenuItem("Demo", NULL, &showDemo);
                 ImGui::EndMenu();
             }
@@ -179,6 +182,24 @@ class EditorGUI
         ImGui::End();
     }
 
+    void drawCameraFPSSettings()
+    {
+        if (ImGui::Begin("CameraFPS Settings", &showCameraFPSSettings))
+        {
+            if (_activeCamera)
+            {
+                float movementSpeed = _activeCamera->getMovementSpeed();
+                float rotationSpeed = _activeCamera->getRotationSpeed();
+
+                ImGui::DragFloat("Movement speed", , 0.01f, 0.0f, 0.0f);
+
+                // Rotation
+                ImGui::DragFloat3("Rotation speed", , 0.1f, 0.0f, 0.0f);
+            }
+        }
+        ImGui::End();
+    }
+
     bool GUIhasFocus()
     {
         return (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard);
@@ -189,15 +210,23 @@ class EditorGUI
         return io;//ImGui::GetIO();
     }
 
+    void setActiveCamera(std::shared_ptr<CameraFPS> camera)
+    {
+        _activeCamera = camera;
+    }
+
     private:
         ImGuiIO io;
 
         SceneObject* _sceneObject;
         std::vector<std::shared_ptr<SceneObject>>* _sceneObjects;
 
+        std::shared_ptr<CameraFPS> _activeCamera;
+
         bool showObjectProperties;
         bool showDemo;
         bool showSceneGraph;
+        bool showCameraFPSSettings;
 };
 
 /*

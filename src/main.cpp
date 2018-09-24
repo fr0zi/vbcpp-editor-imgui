@@ -167,6 +167,8 @@ int main()
     camera->setLookAt(glm::vec3(0.0f, 0.0f, 0.0f));
     camera->getTransform().setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 
+    editor->setActiveCamera(camera);
+
     std::cout << "Scene objects: " << sceneObjects.size() << '\n';
 
     std::string mouseState;
@@ -246,8 +248,8 @@ int main()
 
         if (cameraActive)
         {   
-            float dx = (xpos - lastxPos) * deltaTime;
-            float dy = (ypos - lastYpos) * deltaTime;
+            double dx = (xpos - lastxPos);
+            double dy = (ypos - lastYpos);
 
             camera->rotateFromMouse(dx, dy);
         }

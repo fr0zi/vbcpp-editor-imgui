@@ -17,8 +17,14 @@ class CameraFPS : virtual public CameraStatic
         CameraFPS(glm::vec2 screenSize);
         virtual ~CameraFPS();
 
-        void rotateFromMouse(float posX, float posY);
+        void rotateFromMouse(double posX, double posY);
         void move(MovementDirection direction, double deltaTime);
+
+        const float getMovementSpeed() const;
+        const float getRotationSpeed() const;
+
+        void setMovementSpeed(const float speed);
+        void setRotationSpeed(const float speed);
 
     protected:
         glm::vec3 _cameraFront;
