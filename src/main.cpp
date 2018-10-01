@@ -157,7 +157,9 @@ int main()
     scnObj2->setMesh(cube);
     scnObj2->setTexture(texture);
     scnObj2->setName("Cube002");
-    scnObj2->getTransform().setPosition(glm::vec3(-3.0f, 1.0f, -6.0f));
+    scnObj2->setPosition(glm::vec3(-3.0f, 1.0f, -6.0f));
+
+    scnObj2->setParent(scnObj);
 
     sceneObjects.push_back(scnObj2);
 

@@ -72,7 +72,7 @@ namespace gfx
             if (obj->getMesh())
             {
 
-                glm::mat4 MVP = _activeCamera->getProjectionMatrix() * _activeCamera->getViewMatrix() * obj->getTransform().getModelMatrix();            
+                glm::mat4 MVP = _activeCamera->getProjectionMatrix() * _activeCamera->getViewMatrix() * obj->getModelMatrix();            
 
                 // Ustawiamy matryce obiektu, potem zmienić na MVP
                 glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(MVP));
