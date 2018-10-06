@@ -16,36 +16,7 @@ namespace gfx
 
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
-
-    void Renderer::addRenderObject(std::shared_ptr<SceneObject> object)
-    {
-        _objects.push_back(object);
-    }
-
-    void Renderer::render()
-    {
-        clearScreen();
-
-        for (auto obj : _objects)
-        {
-            if (obj->getTexture())
-            {
-                obj->getTexture()->bind();
-            }
-
-            if (obj->getMesh())
-            {
-                glBindVertexArray(obj->getMesh()->getVAO());
-
-                glDrawElements(GL_TRIANGLES, obj->getMesh()->getIndexCount(), GL_UNSIGNED_INT, 0);
-
-                glBindVertexArray(0);
-            }
     
-            obj->getTexture()->release();
-        }
-    }
-
     void Renderer::render(std::vector<std::shared_ptr<SceneObject>>& scene)
     {
         clearScreen();
@@ -87,7 +58,7 @@ namespace gfx
             obj->getTexture()->release();
         }
     }
-
+    
     void Renderer::setCamera(std::shared_ptr<CameraStatic> camera)
     {
         _activeCamera = camera;

@@ -10,10 +10,10 @@
 
 //typedef std::list<std::shared_ptr<SceneObject>> SceneObjectList;
 
-class SceneObject
+class SceneObject : public std::enable_shared_from_this<SceneObject>
 {
     public:
-        SceneObject(std::shared_ptr<SceneObject> parent = nullptr, std::string name = "SceneObject");
+        SceneObject(SceneObject* parent = nullptr, std::string name = "SceneObject");
         virtual ~SceneObject();
 
         scene::Transform& getTransform();
@@ -34,7 +34,7 @@ class SceneObject
 
         void setParent(std::shared_ptr<SceneObject> parent);
 
-        std::shared_ptr<SceneObject> getParent();
+        SceneObject* getParent();
 
         void addChild(std::shared_ptr<SceneObject> child);
 
@@ -54,7 +54,7 @@ class SceneObject
         const glm::mat4& getModelMatrix(); 
 
     protected:
-        std::weak_ptr<SceneObject>              _parent;
+        std::shared_ptr<SceneObject>            _parent;
         std::list<std::shared_ptr<SceneObject>> _childern;
 
         std::string                     _name;

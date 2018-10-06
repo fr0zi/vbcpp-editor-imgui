@@ -1,6 +1,6 @@
 #include "SceneObject.h"
 
-SceneObject::SceneObject(std::shared_ptr<SceneObject> parent, std::string name)
+SceneObject::SceneObject(SceneObject* parent, std::string name)
     : _parent(parent), _name(name), _texture(nullptr), _mesh(nullptr)
 {
 
@@ -56,14 +56,15 @@ void SceneObject::setParent(std::shared_ptr<SceneObject> parent)
     _parent = parent;
 }
 
-std::shared_ptr<SceneObject> SceneObject::getParent()
+SceneObject* SceneObject::getParent()
 {
-    return _parent;
+    return _parent.get();
 }
 
 void SceneObject::addChild(std::shared_ptr<SceneObject> child)
 {
-
+    child->setParent( shared_from_this() );
+    _childern.push_back( child );
 }
 
 // Transform

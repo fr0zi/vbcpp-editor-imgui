@@ -16,8 +16,6 @@ namespace gfx
         public:
             Renderer();
 
-            void addRenderObject(std::shared_ptr<SceneObject> object);
-            void render();
             void render(std::vector<std::shared_ptr<SceneObject>>& scene);
 
             void setCamera(std::shared_ptr<CameraStatic> camera);

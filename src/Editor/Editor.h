@@ -148,7 +148,7 @@ class EditorGUI
             
                 for (; counter < _sceneObjects->size(); ++counter)
                 {
-                    std::shared_ptr<SceneObject> scnObj = _sceneObjects->at(counter);
+                    auto scnObj = _sceneObjects->at(counter);
 
                     // Disable the default open on single-click behavior and pass in Selected flag according to our selection state.
                     ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | 
