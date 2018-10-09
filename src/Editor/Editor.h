@@ -33,12 +33,12 @@ class EditorGUI
     {
         _sceneObject = object;
     }
-
+    /*
     void setSceneObjects(std::vector<std::shared_ptr<SceneObject>>* sceneObjects)
     {
         _sceneObjects = sceneObjects;
     }
-
+    */
     void Render()
     {
         ImGui_ImplGlfwGL3_NewFrame();
@@ -137,54 +137,42 @@ class EditorGUI
 
     void drawSceneGraph()
     {
-        static int selection_mask = (1 << 2);
-        static int node_clicked = -1;
-
         if (ImGui::Begin("Scene Graph", &showObjectProperties))
         {
-            if (ImGui::TreeNode("Root"))
+            for (int index = 0; index < _rootObject->getChildCount(); ++index)
             {
-                int counter = 0;
-            
-                for (; counter < _sceneObjects->size(); ++counter)
-                {
-                    auto scnObj = _sceneObjects->at(counter);
-
-                    // Disable the default open on single-click behavior and pass in Selected flag according to our selection state.
-                    ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | 
-                        ImGuiTreeNodeFlags_OpenOnDoubleClick | 
-                        ((selection_mask & (1 << counter)) ? ImGuiTreeNodeFlags_Selected : 0);
-
-                    // Node
-                    bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)counter, node_flags, scnObj->getName().c_str());
-                    //bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)counter, node_flags, "Selectable node %d", counter);
-                    if (ImGui::IsItemClicked())
-                    {
-                        node_clicked = counter;
-                        _sceneObject = scnObj.get();
-                    }
-                
-                    if (node_open)
-                    {
-                        //ImGui::Text("Node selected, %d", node_clicked);
-                        ImGui::TreePop();
-                    }
-                
-                    //ImGui::TreePop();
-                }
-                ImGui::TreePop();
-            
-                if (node_clicked != -1)
-                {
-                    // Update selection state. Process outside of tree loop to avoid visual inconsistencies during the clicking-frame.
-                    if (ImGui::GetIO().KeyCtrl)
-                        selection_mask ^= (1 << node_clicked);          // CTRL+click to toggle
-                    else //if (!(selection_mask & (1 << node_clicked))) // Depending on selection behavior you want, this commented bit preserve selection when clicking on item that is part of the selection
-                        selection_mask = (1 << node_clicked);           // Click to single-select
-                }
+                SceneObject* scnObj = _rootObject->getChildAt(index);
+                inspectSceneObject(scnObj);              
             }
+            ImGui::End();
         }
-        ImGui::End();
+    }
+
+    void inspectSceneObject(SceneObject* object)
+    {
+        ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+
+        ImGui::PushID(object);
+        //bool node_open = ImGui::TreeNode(object->getName().c_str());
+        bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)object, node_flags, object->getName().c_str());
+
+        if (ImGui::IsItemClicked())
+            _sceneObject = object;
+        if (node_open)
+        {
+            for (int index = 0; index < object->getChildCount(); ++index)
+            {
+                SceneObject* child = object->getChildAt(index);
+                    
+                ImGui::PushID(child);
+
+                inspectSceneObject(child);
+
+                ImGui::PopID();                
+            }
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
     }
 
     void drawCameraFPSSettings()
@@ -223,11 +211,17 @@ class EditorGUI
         _activeCamera = camera;
     }
 
+    void setRootObject(std::shared_ptr<SceneObject> root)
+    {
+        _rootObject = root;
+    }
+
     private:
         ImGuiIO io;
 
         SceneObject* _sceneObject;
-        std::vector<std::shared_ptr<SceneObject>>* _sceneObjects;
+        //std::vector<std::shared_ptr<SceneObject>>* _sceneObjects;
+        std::shared_ptr<SceneObject>    _rootObject;
 
         std::shared_ptr<CameraFPS> _activeCamera;
 

@@ -8,7 +8,10 @@
 #include "../Graphics/Texture2D.h"
 #include "../Graphics/Cube.hpp"
 
-//typedef std::list<std::shared_ptr<SceneObject>> SceneObjectList;
+class SceneObject;
+
+typedef std::list<std::shared_ptr<SceneObject>> SceneObjectList;
+
 
 class SceneObject : public std::enable_shared_from_this<SceneObject>
 {
@@ -38,6 +41,10 @@ class SceneObject : public std::enable_shared_from_this<SceneObject>
 
         void addChild(std::shared_ptr<SceneObject> child);
 
+        const int getChildCount() const noexcept;
+
+        SceneObject* getChildAt(unsigned int index);
+
         // Transform
         void setPosition( const glm::vec3 position );
 
@@ -55,7 +62,7 @@ class SceneObject : public std::enable_shared_from_this<SceneObject>
 
     protected:
         std::shared_ptr<SceneObject>            _parent;
-        std::list<std::shared_ptr<SceneObject>> _childern;
+        SceneObjectList _childern;
 
         std::string                     _name;
         scene::Transform                _transform;

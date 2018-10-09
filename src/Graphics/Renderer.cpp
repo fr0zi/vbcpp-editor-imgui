@@ -17,7 +17,7 @@ namespace gfx
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     
-    void Renderer::render(std::vector<std::shared_ptr<SceneObject>>& scene)
+    void Renderer::render(std::list<SceneObject*>& root)
     {
         clearScreen();
 
@@ -33,7 +33,7 @@ namespace gfx
             return;
         }
 
-        for (auto obj : scene)
+        for (auto obj : root)
         {
             if (obj->getTexture())
             {
@@ -59,6 +59,52 @@ namespace gfx
         }
     }
     
+    void Renderer::render(std::shared_ptr<SceneObject> rootObject)
+    {
+        clearScreen();
+
+        glUseProgram(shaderID);
+
+                // Get uniforms location
+        unsigned int transformLoc = glGetUniformLocation(shaderID, "transform");
+
+
+        if (!_activeCamera)
+        {
+            std::cout << "Error: No camera has been set!\n";
+            return;
+        }
+
+        for (auto i = 0; i < rootObject->getChildCount(); i++)
+        {
+            
+            auto obj = rootObject->getChildAt(i);
+
+            if (obj->getTexture())
+            {
+                obj->getTexture()->bind();
+            }
+
+            if (obj->getMesh())
+            {
+
+                glm::mat4 MVP = _activeCamera->getProjectionMatrix() * _activeCamera->getViewMatrix() * obj->getModelMatrix();            
+
+                // Ustawiamy matryce obiektu, potem zmienić na MVP
+                glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(MVP));
+
+                glBindVertexArray(obj->getMesh()->getVAO());
+
+                glDrawElements(GL_TRIANGLES, obj->getMesh()->getIndexCount(), GL_UNSIGNED_INT, 0);
+
+                glBindVertexArray(0);
+            }
+    
+            obj->getTexture()->release();
+            
+        }
+    }
+
     void Renderer::setCamera(std::shared_ptr<CameraStatic> camera)
     {
         _activeCamera = camera;

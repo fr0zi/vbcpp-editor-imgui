@@ -17,8 +17,6 @@
 
 #include "Editor/Editor.h"
 
-//#include "Editor/MainWindow.h"
-
 int W_WIDTH = 1366;
 int W_HEIGHT = 768;
 
@@ -29,7 +27,6 @@ bool cameraActive = false;
 std::shared_ptr<CameraFPS> camera;
 
 std::unique_ptr<EditorGUI> editor = nullptr;
-//static ImGuiIO io;
 
 float pos = 0.0f;
 
@@ -39,7 +36,9 @@ T clamp(const T& what, const T& a, const T& b)
        return std::min(b, std::max(what, a));
 }
 
-std::vector<std::shared_ptr<SceneObject>> sceneObjects;
+std::list<SceneObject*> renderList;
+
+std::shared_ptr<SceneObject> rootObject;
 
 static void error_callback(int error, const char* description)
 {
@@ -119,10 +118,22 @@ void processInput(GLFWwindow* window, double deltaTime)
     } 
 }
 
+void inspectSceneObject(SceneObject* object)
+{
+    renderList.push_back(object);
+
+    for (int index = 0; index < object->getChildCount(); ++index)
+    {
+        SceneObject* child = object->getChildAt(index);
+        std::cout << "Object name: " << child->getName() << std::endl;
+
+        inspectSceneObject(child);
+    }
+}
+
 
 int main()
 {
-    
     glfwSetErrorCallback(error_callback);
 
 	Window win;    
@@ -133,11 +144,13 @@ int main()
     gfx::Renderer renderer;
     editor.reset(new EditorGUI(win.getWindow()));
 
+    rootObject.reset(new SceneObject(nullptr, "Root"));
+
     glfwSetMouseButtonCallback(win.getWindow(), mouse_button_callback);
     glfwSetKeyCallback(win.getWindow(), key_callback);
     glfwSetCharCallback(win.getWindow(), char_callback);
 
-    editor->setSceneObjects(&sceneObjects);
+    editor->setRootObject(rootObject);
     
     // Object 1
     std::shared_ptr<SceneObject> scnObj(new SceneObject);
@@ -147,8 +160,6 @@ int main()
     scnObj->setMesh(cube);
     scnObj->setTexture(texture);
     scnObj->setName("Cube001");
-
-    sceneObjects.push_back(scnObj);
     
 
     // Object 2
@@ -159,12 +170,26 @@ int main()
     scnObj2->setName("Cube002");
     scnObj2->setPosition(glm::vec3(-3.0f, 1.0f, -6.0f));
 
+
+    // Object 3
+    std::shared_ptr<SceneObject> scnObj3(new SceneObject);
+    
+    scnObj3->setMesh(cube);
+    scnObj3->setTexture(texture);
+    scnObj3->setName("Cube003");
+    scnObj3->setPosition(glm::vec3(1.0f, 0.0f, -1.0f));
+
+    rootObject->addChild(scnObj3);
+
     //scnObj2->setParent(scnObj.get());
     scnObj->addChild(scnObj2);
+    //scnObj2->addChild(scnObj);
 
     //scnObj->setParent(scnObj2.get());
 
-    sceneObjects.push_back(scnObj2);
+    //sceneObjects.push_back(scnObj2);
+    rootObject->addChild(scnObj);
+    //rootObject->addChild(scnObj2);
 
     // Camera
     // camera.reset( new CameraStatic(glm::vec2(W_WIDTH, W_HEIGHT)) );
@@ -174,7 +199,7 @@ int main()
 
     editor->setActiveCamera(camera);
 
-    std::cout << "Scene objects: " << sceneObjects.size() << '\n';
+    inspectSceneObject(rootObject.get());
 
     std::string mouseState;
     std::string keyboardState;
@@ -224,8 +249,7 @@ int main()
             accumulator -= TIME_STEP;
         }
 
-
-        renderer.render(sceneObjects);
+        renderer.render(renderList);
 
         /*
         if( window_fileIO_visible )

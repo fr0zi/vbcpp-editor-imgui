@@ -67,6 +67,24 @@ void SceneObject::addChild(std::shared_ptr<SceneObject> child)
     _childern.push_back( child );
 }
 
+const int SceneObject::getChildCount() const noexcept
+{
+    _childern.size();
+}
+
+SceneObject* SceneObject::getChildAt(unsigned int index)
+{
+    auto it = _childern.begin();
+    
+    if (it != _childern.end())
+    {
+        std::advance(it, index);
+        return (*it).get();
+    }
+    else
+        return nullptr;
+}
+
 // Transform
 void SceneObject::setPosition( const glm::vec3 position )
 {
