@@ -41,6 +41,11 @@ const int Image::getChannelCount() const
     return _channelCount;
 }
 
+const std::string Image::getName() const
+{
+    return _name;
+}
+
 void Image::loadData()
 {
     _data = stbi_load(_name.c_str(), &_width, &_height, &_channelCount, 0);

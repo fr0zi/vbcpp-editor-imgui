@@ -130,6 +130,26 @@ class EditorGUI
                 ImGui::DragFloat3("Scale", (float*)&_sceneObject->getScaleRef(), 0.1f, 0.0f, 0.0f);
 
                 //_sceneObject->setTransform(transform);
+
+                ImGui::Separator();
+
+                if (_sceneObject->getMesh())
+                {
+                    unsigned int vertexCount = _sceneObject->getMesh()->getVertexCount();
+                    ImGui::Text("Vertex count: %d", vertexCount);
+                }
+
+                ImGui::Separator();
+
+                if (_sceneObject->getTexture())
+                {
+                    ImGui::Text("Texture image: %s", _sceneObject->getTexture()->getImage()->getName().c_str());
+
+                    ImTextureID texture = reinterpret_cast<void*>(_sceneObject->getTexture()->getID());
+                    //ImVec2 textureSize = ImVec2(_sceneObject->getTexture()->getImage()->getWidth(), _sceneObject->getTexture()->getImage()->getHeight());
+                    ImVec2 textureSize = ImVec2(128.0f, 128.0f);
+                    ImGui::Image(texture, textureSize, ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
+                }
             }
         }
         ImGui::End();

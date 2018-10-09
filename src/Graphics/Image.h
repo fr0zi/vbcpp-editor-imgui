@@ -35,6 +35,8 @@ class Image
 
         const int getChannelCount() const;
 
+        const std::string getName() const;
+
     private:
         std::string _name;
         int _width, _height, _channelCount;

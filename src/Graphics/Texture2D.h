@@ -25,8 +25,11 @@ class Texture2D
 
         const GLuint& getID();
 
+        const std::shared_ptr<Image> getImage() const;
+
     private:
         GLuint _id;
+        std::shared_ptr<Image> _image;
 
         std::shared_ptr<Image> loadImage( std::string filename );
         void create( std::shared_ptr<Image> image );

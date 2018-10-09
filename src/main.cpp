@@ -173,9 +173,10 @@ int main()
 
     // Object 3
     std::shared_ptr<SceneObject> scnObj3(new SceneObject);
+    std::shared_ptr<gfx::Texture2D> crateTex(new gfx::Texture2D("Data/crate.jpg") );
     
     scnObj3->setMesh(cube);
-    scnObj3->setTexture(texture);
+    scnObj3->setTexture(crateTex);
     scnObj3->setName("Cube003");
     scnObj3->setPosition(glm::vec3(1.0f, 0.0f, -1.0f));
 
