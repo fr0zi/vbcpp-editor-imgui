@@ -14,6 +14,9 @@ add_subdirectory(libs/glfw)
 add_subdirectory(src/ImGui)
 source_group("ImGui" FILES ${IMGUI_SOURCES} ${IMGUI_HEADERS})
 
+add_subdirectory(src/Core)
+source_group("Core" FILES ${CORE_SOURCES} ${CORE_HEADERS})
+
 add_subdirectory(src/Editor)
 source_group("GUI" FILES ${EDITOR_SOURCES} ${EDITOR_HEADERS})
 
@@ -50,6 +53,8 @@ include_directories (libs/glm/include)
 add_executable(${BIN_NAME}
                     ${IMGUI_SOURCES}
                     ${IMGUI_HEADERS}
+                    ${CORE_SOURCES}
+                    ${CORE_HEADERS}
                     ${GUI_SOURCES} 
                     ${GUI_HEADERS}
                     ${WINDOW_SOURCES}

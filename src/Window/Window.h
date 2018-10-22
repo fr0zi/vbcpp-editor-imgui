@@ -1,6 +1,8 @@
 #ifndef WINDOW_H_INCLUDED
 #define WINDOW_H_INCLUDED
 
+#include "glm/glm.hpp"
+
 // GLFW, GLEW
 #include "GL/glew.h"
 
@@ -20,11 +22,13 @@ class Window
         bool createWindow(int w, int h, int posx, int posy);
         GLFWwindow* getWindow() { return _win; }
 
-        int getHeight() { return _height; }
-        int getWidth() { return _width; }
+        //int getHeight() { return _height; }
+        //int getWidth() { return _width; }
 
         void setWindowTitle(string title);
         void setWindowSize(int w, int h);
+
+        const glm::vec2 getWindowSize() const;
 
         void swapBuffers();
         void updateEvents();
@@ -33,8 +37,8 @@ class Window
 
     private:
         GLFWwindow* _win;
-        int         _width, _height;
-        int         _xPos, _yPos;
+        //int         _width, _height;
+        //int         _xPos, _yPos;
         string      _title;
 
         static void errorCallback(int error, const char* description);

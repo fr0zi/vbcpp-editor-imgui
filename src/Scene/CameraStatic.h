@@ -20,6 +20,8 @@ class CameraStatic
         void setLookAt(const glm::vec3 lookAt);
         const glm::vec3 getLookAt() const;
 
+        void setScreenSize(int width, int height);
+
         glm::mat4& getViewMatrix();
         glm::mat4& getProjectionMatrix();        
 

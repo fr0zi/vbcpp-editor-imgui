@@ -6,11 +6,14 @@
 
 #include "Transform.h"
 #include "../Graphics/Texture2D.h"
-#include "../Graphics/Cube.hpp"
+#include "../Graphics/Mesh.h"
+#include "../Graphics/RenderComponent.h"
 
 class SceneObject;
 
-typedef std::list<std::shared_ptr<SceneObject>> SceneObjectList;
+using SceneObjectList = std::list<std::shared_ptr<SceneObject>>;
+
+
 
 
 class SceneObject : public std::enable_shared_from_this<SceneObject>
@@ -19,17 +22,9 @@ class SceneObject : public std::enable_shared_from_this<SceneObject>
         SceneObject(SceneObject* parent = nullptr, std::string name = "SceneObject");
         virtual ~SceneObject();
 
-        scene::Transform& getTransform();
-        
-        void setTransform(const scene::Transform transform);
-        
-        std::shared_ptr<gfx::Texture2D> getTexture();
-        
-        void setTexture(std::shared_ptr<gfx::Texture2D> texture);
+        void setRenderComponent(std::shared_ptr<gfx::RenderComponent> mesh);
 
-        void setMesh(std::shared_ptr<Cube> mesh);
-
-        std::shared_ptr<Cube> getMesh();
+        std::shared_ptr<gfx::RenderComponent> getRenderComponent();
 
         void setName(std::string name);
 
@@ -37,9 +32,11 @@ class SceneObject : public std::enable_shared_from_this<SceneObject>
 
         void setParent(std::shared_ptr<SceneObject> parent);
 
-        SceneObject* getParent();
+        std::shared_ptr<SceneObject> getParent();
 
         void addChild(std::shared_ptr<SceneObject> child);
+
+        void removeChild(std::shared_ptr<SceneObject> child);
 
         const int getChildCount() const noexcept;
 
@@ -61,13 +58,11 @@ class SceneObject : public std::enable_shared_from_this<SceneObject>
         const glm::mat4& getModelMatrix(); 
 
     protected:
-        std::shared_ptr<SceneObject>            _parent;
-        SceneObjectList _childern;
+        std::weak_ptr<SceneObject>    _parent;
+        SceneObjectList               _children;
 
         std::string                     _name;
-        scene::Transform                _transform;
-        std::shared_ptr<gfx::Texture2D> _texture;
-        std::shared_ptr<Cube>           _mesh;
+        std::shared_ptr<gfx::RenderComponent> _renderComponent;
 
         glm::mat4 _modelMatrix;
         glm::vec3 _position;

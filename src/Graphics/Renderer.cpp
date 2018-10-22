@@ -8,6 +8,7 @@ namespace gfx
     Renderer::Renderer()
         : _clearColor(glm::vec4(0.7f, 0.7f, 0.9f, 1.0f))
     {
+        std::cout << "Renderer: Constructor\n";
         shaderID = ShaderLoader::loadShader("Data/shader.vert", "Data/shader.frag");
 
         glEnable(GL_CULL_FACE);
@@ -15,6 +16,11 @@ namespace gfx
         glDepthFunc(GL_LESS);
 
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+
+    Renderer::~Renderer()
+    {
+        std::cout << "Renderer: Destructor\n";
     }
     
     void Renderer::render(std::list<SceneObject*>& root)
@@ -33,32 +39,50 @@ namespace gfx
             return;
         }
 
+
         for (auto obj : root)
         {
-            if (obj->getTexture())
-            {
-                obj->getTexture()->bind();
-            }
+            Mesh* mesh = nullptr;
+            Texture2D* texture = nullptr;
+            RenderComponent* renderComponent = obj->getRenderComponent().get();
 
-            if (obj->getMesh())
+            //if (renderComponent)
+            //{
+                if (renderComponent->getTexture())
+                {
+                    texture = renderComponent->getTexture().get();
+                }
+
+                if (obj->getRenderComponent()->getMesh())
+                {
+                    mesh = obj->getRenderComponent()->getMesh().get();
+                }
+            //}
+
+            if (mesh)
             {
+                if (texture)
+                    texture->bind();
 
                 glm::mat4 MVP = _activeCamera->getProjectionMatrix() * _activeCamera->getViewMatrix() * obj->getModelMatrix();            
 
                 // Ustawiamy matryce obiektu, potem zmienić na MVP
                 glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(MVP));
 
-                glBindVertexArray(obj->getMesh()->getVAO());
+                glBindVertexArray(mesh->getVAO());
 
-                glDrawElements(GL_TRIANGLES, obj->getMesh()->getIndexCount(), GL_UNSIGNED_INT, 0);
+                glDrawElements(GL_TRIANGLES, mesh->getIndexCount(), GL_UNSIGNED_INT, 0);
+
+                if (texture)
+                    texture->release();
 
                 glBindVertexArray(0);
             }
     
-            obj->getTexture()->release();
+            //obj->getTexture()->release();
         }
     }
-    
+    /*
     void Renderer::render(std::shared_ptr<SceneObject> rootObject)
     {
         clearScreen();
@@ -85,7 +109,7 @@ namespace gfx
                 obj->getTexture()->bind();
             }
 
-            if (obj->getMesh())
+            if (obj->getRenderComponent())
             {
 
                 glm::mat4 MVP = _activeCamera->getProjectionMatrix() * _activeCamera->getViewMatrix() * obj->getModelMatrix();            
@@ -93,9 +117,9 @@ namespace gfx
                 // Ustawiamy matryce obiektu, potem zmienić na MVP
                 glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(MVP));
 
-                glBindVertexArray(obj->getMesh()->getVAO());
+                glBindVertexArray(obj->getRenderComponent()->getVAO());
 
-                glDrawElements(GL_TRIANGLES, obj->getMesh()->getIndexCount(), GL_UNSIGNED_INT, 0);
+                glDrawElements(GL_TRIANGLES, obj->getRenderComponent()->getIndexCount(), GL_UNSIGNED_INT, 0);
 
                 glBindVertexArray(0);
             }
@@ -104,8 +128,8 @@ namespace gfx
             
         }
     }
-
-    void Renderer::setCamera(std::shared_ptr<CameraStatic> camera)
+    */
+    void Renderer::setCamera(CameraStatic* camera)
     {
         _activeCamera = camera;
     }

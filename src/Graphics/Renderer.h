@@ -15,18 +15,19 @@ namespace gfx
     {
         public:
             Renderer();
+            ~Renderer();
 
             void render(std::list<SceneObject*>& root);
-            void render(std::shared_ptr<SceneObject> rootObject);
+            //void render(std::shared_ptr<SceneObject> rootObject);
 
-            void setCamera(std::shared_ptr<CameraStatic> camera);
+            void setCamera(CameraStatic* camera);
 
             void setClearColor(const glm::vec4 color);
         
         private:
             std::vector<std::shared_ptr<SceneObject>> _objects;
             glm::vec4   _clearColor;
-            std::shared_ptr<CameraStatic> _activeCamera;
+            CameraStatic* _activeCamera;
 
             GLuint shaderID;
 

@@ -8,8 +8,9 @@
 
 #include "Graphics/Image.h"
 #include "Graphics/Texture2D.h"
-#include "Graphics/Cube.hpp"
+#include "Graphics/Mesh.h"
 #include "Graphics/Renderer.h"
+#include "Graphics/RenderComponent.h"
 
 #include "Scene/SceneObject.h"
 #include "Scene/CameraStatic.h"
@@ -24,9 +25,10 @@ double lastxPos, lastYpos;
 
 bool cameraActive = false;
 // std::shared_ptr<CameraStatic> camera;
-std::shared_ptr<CameraFPS> camera;
-
+std::unique_ptr<CameraFPS> camera = nullptr;
 std::unique_ptr<EditorGUI> editor = nullptr;
+std::unique_ptr<gfx::Renderer> renderer = nullptr;
+
 
 float pos = 0.0f;
 
@@ -90,6 +92,16 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 }
 
+void change_window_size_callback(GLFWwindow* window, int width, int height)
+{
+    camera->setScreenSize(width, height);
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
 void processInput(GLFWwindow* window, double deltaTime)
 {   
     if (cameraActive)
@@ -120,7 +132,8 @@ void processInput(GLFWwindow* window, double deltaTime)
 
 void inspectSceneObject(SceneObject* object)
 {
-    renderList.push_back(object);
+    if (object->getRenderComponent())
+        renderList.push_back(object);
 
     for (int index = 0; index < object->getChildCount(); ++index)
     {
@@ -136,37 +149,43 @@ int main()
 {
     glfwSetErrorCallback(error_callback);
 
-	Window win;    
+	//Window win;    
 
-    win.createWindow(W_WIDTH, W_HEIGHT, 10, 40);
-    win.setWindowTitle("VirtualBus C++ - Map Editor");
+    std::shared_ptr<Window> window = std::make_shared<Window>();
 
-    gfx::Renderer renderer;
-    editor.reset(new EditorGUI(win.getWindow()));
+    window->createWindow(W_WIDTH, W_HEIGHT, 10, 40);
+    window->setWindowTitle("VirtualBus C++ - Map Editor");
+
+    renderer.reset(new gfx::Renderer);
+    editor.reset(new EditorGUI(window));
 
     rootObject.reset(new SceneObject(nullptr, "Root"));
 
-    glfwSetMouseButtonCallback(win.getWindow(), mouse_button_callback);
-    glfwSetKeyCallback(win.getWindow(), key_callback);
-    glfwSetCharCallback(win.getWindow(), char_callback);
+    glfwSetMouseButtonCallback(window->getWindow(), mouse_button_callback);
+    glfwSetKeyCallback(window->getWindow(), key_callback);
+    glfwSetCharCallback(window->getWindow(), char_callback);
+    glfwSetWindowSizeCallback(window->getWindow(), change_window_size_callback);
+    glfwSetFramebufferSizeCallback(window->getWindow(), framebuffer_size_callback);
 
-    editor->setRootObject(rootObject);
+    editor->setRootObject(rootObject.get());
     
     // Object 1
     std::shared_ptr<SceneObject> scnObj(new SceneObject);
     std::shared_ptr<gfx::Texture2D> texture(new gfx::Texture2D("Data/brick.jpg") );
-    std::shared_ptr<Cube> cube(new Cube);
+    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
     
-    scnObj->setMesh(cube);
-    scnObj->setTexture(texture);
+    scnObj->setRenderComponent(std::make_shared<gfx::RenderComponent>());
+    scnObj->getRenderComponent()->setMesh(mesh);
+    scnObj->getRenderComponent()->setTexture(texture);
     scnObj->setName("Cube001");
     
 
     // Object 2
     std::shared_ptr<SceneObject> scnObj2(new SceneObject);
     
-    scnObj2->setMesh(cube);
-    scnObj2->setTexture(texture);
+    scnObj2->setRenderComponent(std::make_shared<gfx::RenderComponent>());
+    scnObj2->getRenderComponent()->setMesh(mesh);
+    scnObj2->getRenderComponent()->setTexture(texture);
     scnObj2->setName("Cube002");
     scnObj2->setPosition(glm::vec3(-3.0f, 1.0f, -6.0f));
 
@@ -175,37 +194,29 @@ int main()
     std::shared_ptr<SceneObject> scnObj3(new SceneObject);
     std::shared_ptr<gfx::Texture2D> crateTex(new gfx::Texture2D("Data/crate.jpg") );
     
-    scnObj3->setMesh(cube);
-    scnObj3->setTexture(crateTex);
+    scnObj3->setRenderComponent(std::make_shared<gfx::RenderComponent>());
+    scnObj3->getRenderComponent()->setMesh(mesh);
+    scnObj3->getRenderComponent()->setTexture(crateTex);
     scnObj3->setName("Cube003");
     scnObj3->setPosition(glm::vec3(1.0f, 0.0f, -1.0f));
 
-    rootObject->addChild(scnObj3);
+    scnObj2->addChild(scnObj3);
 
-    //scnObj2->setParent(scnObj.get());
-    scnObj->addChild(scnObj2);
-    //scnObj2->addChild(scnObj);
-
-    //scnObj->setParent(scnObj2.get());
-
-    //sceneObjects.push_back(scnObj2);
     rootObject->addChild(scnObj);
-    //rootObject->addChild(scnObj2);
-
+    rootObject->addChild(scnObj2);
+    
     // Camera
     // camera.reset( new CameraStatic(glm::vec2(W_WIDTH, W_HEIGHT)) );
     camera.reset( new CameraFPS(glm::vec2(W_WIDTH, W_HEIGHT)) );
     camera->setLookAt(glm::vec3(0.0f, 0.0f, 0.0f));
     camera->getTransform().setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 
-    editor->setActiveCamera(camera);
+    editor->setActiveCamera(camera.get());
 
     inspectSceneObject(rootObject.get());
 
-    std::string mouseState;
-    std::string keyboardState;
 
-    renderer.setCamera(camera);
+    renderer->setCamera(camera.get());
 
     double xpos, ypos;
 
@@ -226,7 +237,7 @@ int main()
     int nbFrames = 0;
 
 
-	while (win.isOpened())
+	while (window->isOpened())
     {   
         nbFrames++;
 
@@ -241,16 +252,15 @@ int main()
 
 
         if(!editor->GUIhasFocus())
-            processInput(win.getWindow(), deltaTime);
+            processInput(window->getWindow(), deltaTime);
 
         while ( accumulator > TIME_STEP )
         {
             // fixed time stuff
-
             accumulator -= TIME_STEP;
         }
 
-        renderer.render(renderList);
+        renderer->render(renderList);
 
         /*
         if( window_fileIO_visible )
@@ -274,14 +284,15 @@ int main()
         }  
         */
 
-        glfwGetCursorPos(win.getWindow(), &xpos, &ypos);
+        glfwGetCursorPos(window->getWindow(), &xpos, &ypos);
 
         if (cameraActive)
         {   
             double dx = (xpos - lastxPos);
             double dy = (ypos - lastYpos);
 
-            camera->rotateFromMouse(dx, dy);
+            if(camera)
+                camera->rotateFromMouse(dx, dy);
         }
         
         lastxPos = xpos;
@@ -289,10 +300,11 @@ int main()
 
         editor->Render();
 
-        win.swapBuffers();
-        win.updateEvents();
-
+        window->swapBuffers();
+        window->updateEvents();
 	}
 
+    renderer.reset();
+    editor.reset();
 	return 0;
 }

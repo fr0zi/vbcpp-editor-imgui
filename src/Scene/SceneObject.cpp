@@ -1,44 +1,24 @@
 #include "SceneObject.h"
 
 SceneObject::SceneObject(SceneObject* parent, std::string name)
-    : _parent(parent), _name(name), _texture(nullptr), _mesh(nullptr)
+    : _name(name), _renderComponent(nullptr)
 {
-
+    std::cout << "Object " << _name << ": Constructor\n";
 }
 
 SceneObject::~SceneObject()
 {
-
+    std::cout << "Object " << _name << ": Destructor\n";
 }
 
-scene::Transform& SceneObject::getTransform()
+void SceneObject::setRenderComponent(std::shared_ptr<gfx::RenderComponent> component)
 {
-    return _transform;
+    _renderComponent = component;
 }
 
-void SceneObject::setTransform(const scene::Transform transform)
+std::shared_ptr<gfx::RenderComponent> SceneObject::getRenderComponent()
 {
-    _transform = transform;
-}
-
-std::shared_ptr<gfx::Texture2D> SceneObject::getTexture()
-{
-    return _texture;
-}
-
-void SceneObject::setTexture(std::shared_ptr<gfx::Texture2D> texture)
-{
-    _texture = texture;
-}
-
-void SceneObject::setMesh(std::shared_ptr<Cube> mesh)
-{
-    _mesh = mesh;
-}
-
-std::shared_ptr<Cube> SceneObject::getMesh()
-{
-    return _mesh;
+    return _renderComponent;
 }
 
 void SceneObject::setName(std::string name)
@@ -56,30 +36,47 @@ void SceneObject::setParent(std::shared_ptr<SceneObject> parent)
     _parent = parent;
 }
 
-SceneObject* SceneObject::getParent()
+std::shared_ptr<SceneObject> SceneObject::getParent()
 {
-    return _parent.get();
+    return _parent.lock();
 }
 
 void SceneObject::addChild(std::shared_ptr<SceneObject> child)
 {
-    child->setParent( shared_from_this() );
-    _childern.push_back( child );
+    if (child)
+    {
+        child->setParent( shared_from_this() );
+        _children.push_back( std::move(child) );
+    }
+}
+
+void SceneObject::removeChild(std::shared_ptr<SceneObject> child)
+{
+    for (auto it = _children.begin(); it != _children.end(); ++it)
+    {
+        if (*it == child)
+        {
+            std::cout << "Removing child..." << std::endl;
+            (*it)->setParent(nullptr);
+            _children.erase(it);
+        }
+    }
 }
 
 const int SceneObject::getChildCount() const noexcept
 {
-    _childern.size();
+    return _children.size();
 }
 
 SceneObject* SceneObject::getChildAt(unsigned int index)
 {
-    auto it = _childern.begin();
+    auto it = _children.begin();
     
-    if (it != _childern.end())
+    if (it != _children.end())
     {
         std::advance(it, index);
         return (*it).get();
+
     }
     else
         return nullptr;
@@ -140,6 +137,7 @@ void SceneObject::updateModelMatrix()
 
     _modelMatrix = pos * rot * s;
 
-    if (_parent)
-        _modelMatrix = _parent->getModelMatrix() * _modelMatrix;
+    std::shared_ptr<SceneObject> parent = _parent.lock();
+    if (parent)
+        _modelMatrix = parent->getModelMatrix() * _modelMatrix;
 }

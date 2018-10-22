@@ -5,12 +5,13 @@ CameraFPS::CameraFPS(glm::vec2 screenSize)
   _movementSpeed(1.0f), _rotationSpeed(0.2f),
   _yaw(-90.0f), _pitch(0.0f)
 {
+    std::cout << "CameraFPS: Constructor\n";
     updateCameraVectors();
 }
 
 CameraFPS::~CameraFPS()
 {
-
+    std::cout << "CameraFPS: Destructor\n";
 }
 
 void CameraFPS::rotateFromMouse(double posX, double posY)

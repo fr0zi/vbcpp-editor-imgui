@@ -28,6 +28,7 @@ namespace scene
 
         private:
             glm::mat4 _modelMatrix;
+            glm::mat4 _absoluteMatrix;
             glm::vec3 _position;
             glm::vec3 _rotation;
             glm::vec3 _scale = {1.0f, 1.0f, 1.0f};

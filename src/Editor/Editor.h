@@ -6,6 +6,7 @@
 
 #include "../Scene/SceneObject.h"
 #include "../Scene/CameraFPS.h"
+#include "../Window/Window.h"
 
 #include <iostream>
 #include <cstring>
@@ -14,31 +15,31 @@
 class EditorGUI
 {
     public:
-    EditorGUI(GLFWwindow* window)
-    : _sceneObject(nullptr), _activeCamera(nullptr),
+    EditorGUI(std::shared_ptr<Window> window)
+    : _selectedObject(nullptr), _activeCamera(nullptr), _OGLwindow(nullptr),
       showObjectProperties(true),
       showDemo(false),
       showSceneGraph(true),
-      showCameraFPSSettings(false)
+      showCameraFPSSettings(false),
+      showFileIODialog(false),
+      showAddSceneObjectDialog(false)
     {
-        ImGui_ImplGlfwGL3_Init(window, false);
+        std::cout << "Editor: Constructor\n";
+        _OGLwindow = std::move(window);
+        ImGui_ImplGlfwGL3_Init(_OGLwindow->getWindow(), false);
     }
 
     ~EditorGUI()
     {
+        std::cout << "Editor: Destructor\n";
         ImGui_ImplGlfwGL3_Shutdown();
     }
 
     void setActiveSceneObject(SceneObject* object)
     {
-        _sceneObject = object;
+        _selectedObject = object;
     }
-    /*
-    void setSceneObjects(std::vector<std::shared_ptr<SceneObject>>* sceneObjects)
-    {
-        _sceneObjects = sceneObjects;
-    }
-    */
+
     void Render()
     {
         ImGui_ImplGlfwGL3_NewFrame();
@@ -59,6 +60,16 @@ class EditorGUI
         if (showCameraFPSSettings)
         {
             drawCameraFPSSettings();
+        }
+
+        if (showFileIODialog)
+        {
+            drawFileIODialog();
+        }
+
+        if (showAddSceneObjectDialog)
+        {
+            drawAddSceneObjectDialog();
         }
 
         ImGui::Render();
@@ -90,26 +101,51 @@ class EditorGUI
                 ImGui::MenuItem("Demo", NULL, &showDemo);
                 ImGui::EndMenu();
             }
+            if (ImGui::BeginMenu("Objects"))
+            {
+                if (ImGui::MenuItem("Add Scene Object...", NULL) ) { showAddSceneObjectDialog = true; };
+                if (ImGui::MenuItem("File IO Dialog...", NULL) ) { showFileIODialog = true; };
+                ImGui::EndMenu();
+            }
             ImGui::EndMainMenuBar();
         }
     }
 
     void drawObjectProperties()
     {
+        glm::vec2 glfwWindowSize = _OGLwindow->getWindowSize();
+        
         if (ImGui::Begin("Object Properties", &showObjectProperties))
         {
-            if (_sceneObject)
+            ImVec2 windowPos = ImGui::GetWindowPos();
+            //ImGui::Text("Window position: %d, %d", static_cast<int>(windowPos.x), static_cast<int>(windowPos.y));
+
+            ImVec2 windowSize = ImGui::GetWindowSize();
+            //ImGui::Text("Window size: %d, %d", static_cast<int>(windowSize.x), static_cast<int>(windowSize.y));
+            //ImGui::Text("GLFW Window size: %d, %d", static_cast<int>(glfwWindowSize.x), static_cast<int>(glfwWindowSize.y));
+
+            if ((windowPos.x + windowSize.x) >  glfwWindowSize.x)
+            {
+                ImGui::SetWindowPos(ImVec2(glfwWindowSize.x - windowSize.x, windowPos.y));
+            } else
+            if ((windowPos.y + windowSize.y) >  glfwWindowSize.y)
+            {
+                ImGui::SetWindowPos(ImVec2(windowPos.x, glfwWindowSize.y - windowSize.y));
+            }
+
+            if (_selectedObject)
             {
                 // Object's name
                 char buffer[50];
 
-                strncpy(buffer, _sceneObject->getName().c_str(), sizeof buffer);
+                strncpy(buffer, _selectedObject->getName().c_str(), sizeof buffer);
                 
                 buffer[sizeof buffer - 1] = '\0';
 
-                if (ImGui::InputText("Name", buffer, IM_ARRAYSIZE(buffer), ImGuiInputTextFlags_EnterReturnsTrue ) )
+                if (ImGui::InputText("Name", buffer, IM_ARRAYSIZE(buffer), 
+                                        ImGuiInputTextFlags_EnterReturnsTrue ) )
                 {
-                    _sceneObject->setName(std::string(buffer));
+                    _selectedObject->setName(std::string(buffer));
                 }   
 
                 ImGui::Separator();
@@ -117,38 +153,49 @@ class EditorGUI
                 // Objects transformation
                 ImGui::Text("Transformation");
 
-                //scene::Transform transform;
-
-                //transform = _sceneObject->getTransform();
                 // Position
-                ImGui::DragFloat3("Position", (float*)&_sceneObject->getPositionRef(), 0.01f, 0.0f, 0.0f);
+                ImGui::DragFloat3("Position", (float*)&_selectedObject->getPositionRef(), 0.01f, 0.0f, 0.0f);
 
                 // Rotation
-                ImGui::DragFloat3("Rotation", (float*)&_sceneObject->getRotationRef(), 0.1f, 0.0f, 0.0f);
+                ImGui::DragFloat3("Rotation", (float*)&_selectedObject->getRotationRef(), 0.1f, 0.0f, 0.0f);
 
                 // Scale
-                ImGui::DragFloat3("Scale", (float*)&_sceneObject->getScaleRef(), 0.1f, 0.0f, 0.0f);
-
-                //_sceneObject->setTransform(transform);
+                ImGui::DragFloat3("Scale", (float*)&_selectedObject->getScaleRef(), 0.1f, 0.0f, 0.0f);
 
                 ImGui::Separator();
+                ImGui::Text("COMPONENTS");
 
-                if (_sceneObject->getMesh())
+                if (_selectedObject->getRenderComponent() )
                 {
-                    unsigned int vertexCount = _sceneObject->getMesh()->getVertexCount();
-                    ImGui::Text("Vertex count: %d", vertexCount);
-                }
+                    if (ImGui::CollapsingHeader("Render Component"))
+                    {
+                        if (_selectedObject->getRenderComponent()->getMesh())
+                        {
+                            //ImGui::Text("Mesh");
+                            unsigned int vertexCount = _selectedObject->getRenderComponent()->getMesh()->getVertexCount();
+                            ImGui::Text("Vertex count: %d", vertexCount);
+                        }
 
-                ImGui::Separator();
+                        if (_selectedObject->getRenderComponent()->getTexture())
+                        {
+                            ImGui::Text("Texture image: %s", 
+                                _selectedObject->getRenderComponent()->getTexture()->getImage()->getName().c_str());
 
-                if (_sceneObject->getTexture())
+                            ImTextureID texture = 
+                                reinterpret_cast<void*>(_selectedObject->getRenderComponent()->getTexture()->getID());
+                            
+                            ImVec2 textureSize = ImVec2(128.0f, 128.0f);
+                            ImGui::Image(texture, textureSize, ImVec2(0,0), ImVec2(1,1), 
+                                            ImColor(255,255,255,255), ImColor(255,255,255,128)
+                                        );
+                        }
+                    }
+                } // CollapsingHeader("Render Component")
+
+
+                if (false /* additional Component */)
                 {
-                    ImGui::Text("Texture image: %s", _sceneObject->getTexture()->getImage()->getName().c_str());
-
-                    ImTextureID texture = reinterpret_cast<void*>(_sceneObject->getTexture()->getID());
-                    //ImVec2 textureSize = ImVec2(_sceneObject->getTexture()->getImage()->getWidth(), _sceneObject->getTexture()->getImage()->getHeight());
-                    ImVec2 textureSize = ImVec2(128.0f, 128.0f);
-                    ImGui::Image(texture, textureSize, ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
+                    // show Component stuff here
                 }
             }
         }
@@ -159,10 +206,13 @@ class EditorGUI
     {
         if (ImGui::Begin("Scene Graph", &showObjectProperties))
         {
-            for (int index = 0; index < _rootObject->getChildCount(); ++index)
+            if (_rootObject)
             {
-                SceneObject* scnObj = _rootObject->getChildAt(index);
-                inspectSceneObject(scnObj);              
+                for (int index = 0; index < _rootObject->getChildCount(); ++index)
+                {
+                    SceneObject* scnObj = _rootObject->getChildAt(index);
+                    inspectSceneObject(scnObj);              
+                }
             }
             ImGui::End();
         }
@@ -177,7 +227,7 @@ class EditorGUI
         bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)object, node_flags, object->getName().c_str());
 
         if (ImGui::IsItemClicked())
-            _sceneObject = object;
+            _selectedObject = object;
         if (node_open)
         {
             for (int index = 0; index < object->getChildCount(); ++index)
@@ -216,6 +266,24 @@ class EditorGUI
         ImGui::End();
     }
 
+    void drawAddSceneObjectDialog()
+    {
+        std::string name;
+        if (addSceneObjectDialog(name))
+        {
+            showAddSceneObjectDialog = false;
+
+            if (!name.empty())
+            {
+                _rootObject->addChild(std::make_shared<SceneObject>(nullptr, name));
+            }
+            else
+            {
+                std::cout << "Name empty!" << std::endl;
+            }
+        }
+    }
+
     bool GUIhasFocus()
     {
         return (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard);
@@ -226,12 +294,66 @@ class EditorGUI
         return io;//ImGui::GetIO();
     }
 
-    void setActiveCamera(std::shared_ptr<CameraFPS> camera)
+    // Dialog windows
+
+    bool drawFileIODialog()
+    {
+            string save_file;
+            std::vector<string> window_recent_files = {};
+            if( fileIOWindow( save_file, window_recent_files, "Save", {"*.usr", "*.*"} ) )
+            {
+                showFileIODialog = false;
+                if( !save_file.empty() )
+                {
+                    //window_recent_files.push_back( save_file );
+
+                    //std::ofstream out_file( "file.txt", std::ios_base::trunc );          
+                    //writeStuffToFile( out_file ); 
+                    //out_file.close();
+
+                    std::cout << "Writing to disk!\n";
+                }
+            }
+
+    }
+
+    bool addSceneObjectDialog(std::string& name)
+    {
+        bool close_it = false;
+
+        static char objectName[50]; 
+
+        ImVec2 size = ImVec2(300.0f, 100.0f);
+
+        ImGui::SetNextWindowSize( size );
+        ImGui::Begin( "Add SceneObject..." );
+
+        ImGui::InputText("Name", objectName, IM_ARRAYSIZE(objectName) );
+
+        if( ImGui::Button( "Create" ) )
+        {
+            name = std::string(objectName);
+            close_it = true;
+        }
+
+        ImGui::SameLine();
+
+        if( ImGui::Button( "Cancel" ) )
+        {
+            strncpy(objectName, "", sizeof objectName);
+            close_it = true;
+        }
+        ImGui::End();
+
+        return close_it;
+    }
+
+    void setActiveCamera(CameraFPS* camera)
     {
         _activeCamera = camera;
     }
 
-    void setRootObject(std::shared_ptr<SceneObject> root)
+    void setRootObject(SceneObject* root)
     {
         _rootObject = root;
     }
@@ -239,14 +361,17 @@ class EditorGUI
     private:
         ImGuiIO io;
 
-        SceneObject* _sceneObject;
-        //std::vector<std::shared_ptr<SceneObject>>* _sceneObjects;
-        std::shared_ptr<SceneObject>    _rootObject;
+        SceneObject* _selectedObject;
+        SceneObject* _rootObject;
 
-        std::shared_ptr<CameraFPS> _activeCamera;
+        CameraFPS* _activeCamera;
+
+        std::shared_ptr<Window> _OGLwindow;
 
         bool showObjectProperties;
         bool showDemo;
         bool showSceneGraph;
         bool showCameraFPSSettings;
+        bool showFileIODialog;
+        bool showAddSceneObjectDialog;
 };

@@ -26,6 +26,11 @@ void CameraStatic::setLookAt(const glm::vec3 lookAt)
     _lookAt = lookAt;
 }
 
+void CameraStatic::setScreenSize(int width, int height)
+{
+    _screenSize = glm::vec2(width, height);
+}
+
 const glm::vec3 CameraStatic::getLookAt() const
 {
     return _lookAt;
