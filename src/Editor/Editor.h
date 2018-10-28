@@ -275,7 +275,10 @@ class EditorGUI
 
             if (!name.empty())
             {
-                _rootObject->addChild(std::make_shared<SceneObject>(nullptr, name));
+                if (_selectedObject)
+                    _selectedObject->addChild(std::make_shared<SceneObject>(nullptr, name));
+                else
+                    _rootObject->addChild(std::make_shared<SceneObject>(nullptr, name));
             }
             else
             {
@@ -314,7 +317,7 @@ class EditorGUI
                     std::cout << "Writing to disk!\n";
                 }
             }
-
+        return true;
     }
 
     bool addSceneObjectDialog(std::string& name)

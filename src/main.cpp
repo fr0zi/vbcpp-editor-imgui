@@ -220,7 +220,7 @@ int main()
 
     double xpos, ypos;
 
-// Time calculation variables
+    // Time calculation variables
     double deltaTime = 0.0;
     double accumulator = 0.0;
 
