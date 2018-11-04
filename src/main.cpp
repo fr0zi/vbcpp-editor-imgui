@@ -160,6 +160,7 @@ int main()
     editor.reset(new EditorGUI(window));
 
     rootObject.reset(new SceneObject(nullptr, "Root"));
+    rootObject->setDrawAABBox(false);
 
     glfwSetMouseButtonCallback(window->getWindow(), mouse_button_callback);
     glfwSetKeyCallback(window->getWindow(), key_callback);
@@ -174,7 +175,6 @@ int main()
     std::shared_ptr<gfx::Texture2D> texture(new gfx::Texture2D("Data/brick.jpg") );
     std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
     
-    scnObj->setRenderComponent(std::make_shared<gfx::RenderComponent>());
     scnObj->getRenderComponent()->setMesh(mesh);
     scnObj->getRenderComponent()->setTexture(texture);
     scnObj->setName("Cube001");
@@ -183,7 +183,6 @@ int main()
     // Object 2
     std::shared_ptr<SceneObject> scnObj2(new SceneObject);
     
-    scnObj2->setRenderComponent(std::make_shared<gfx::RenderComponent>());
     scnObj2->getRenderComponent()->setMesh(mesh);
     scnObj2->getRenderComponent()->setTexture(texture);
     scnObj2->setName("Cube002");
@@ -194,7 +193,6 @@ int main()
     std::shared_ptr<SceneObject> scnObj3(new SceneObject);
     std::shared_ptr<gfx::Texture2D> crateTex(new gfx::Texture2D("Data/crate.jpg") );
     
-    scnObj3->setRenderComponent(std::make_shared<gfx::RenderComponent>());
     scnObj3->getRenderComponent()->setMesh(mesh);
     scnObj3->getRenderComponent()->setTexture(crateTex);
     scnObj3->setName("Cube003");

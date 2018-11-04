@@ -30,6 +30,7 @@ namespace gfx
             CameraStatic* _activeCamera;
 
             GLuint shaderID;
+            GLuint AABBoxShaderID;
 
             void clearScreen();
     };

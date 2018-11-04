@@ -1,7 +1,7 @@
 #include "SceneObject.h"
 
 SceneObject::SceneObject(SceneObject* parent, std::string name)
-    : _name(name), _renderComponent(nullptr)
+    : _name(name), _renderComponent(nullptr), _drawAABBox(true)
 {
     std::cout << "Object " << _name << ": Constructor\n";
 }
@@ -11,14 +11,12 @@ SceneObject::~SceneObject()
     std::cout << "Object " << _name << ": Destructor\n";
 }
 
-void SceneObject::setRenderComponent(std::shared_ptr<gfx::RenderComponent> component)
+gfx::RenderComponent* SceneObject::getRenderComponent()
 {
-    _renderComponent = component;
-}
+    if (!_renderComponent)
+        _renderComponent = std::make_unique<gfx::RenderComponent>();
 
-std::shared_ptr<gfx::RenderComponent> SceneObject::getRenderComponent()
-{
-    return _renderComponent;
+    return _renderComponent.get();
 }
 
 void SceneObject::setName(std::string name)
@@ -118,6 +116,21 @@ const glm::mat4& SceneObject::getModelMatrix()
     updateModelMatrix();
 
     return _modelMatrix;
+}
+
+AABBox& SceneObject::getAABBox()
+{
+    return _aabbox;
+}
+
+bool SceneObject::getDrawAABBox()
+{
+    return _drawAABBox;
+}
+
+void SceneObject::setDrawAABBox(bool state)
+{
+    _drawAABBox = state;
 }
 
 void SceneObject::updateModelMatrix()

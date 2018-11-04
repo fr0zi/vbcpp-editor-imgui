@@ -10,6 +10,7 @@ namespace gfx
     {
         std::cout << "Renderer: Constructor\n";
         shaderID = ShaderLoader::loadShader("Data/shader.vert", "Data/shader.frag");
+        AABBoxShaderID = ShaderLoader::loadShader("Data/AABBox.vert", "Data/AABBox.frag");
 
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
@@ -27,7 +28,10 @@ namespace gfx
     {
         clearScreen();
 
+        
+
         glUseProgram(shaderID);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
                 // Get uniforms location
         unsigned int transformLoc = glGetUniformLocation(shaderID, "transform");
@@ -44,7 +48,7 @@ namespace gfx
         {
             Mesh* mesh = nullptr;
             Texture2D* texture = nullptr;
-            RenderComponent* renderComponent = obj->getRenderComponent().get();
+            gfx::RenderComponent* renderComponent = obj->getRenderComponent();
 
             //if (renderComponent)
             //{
@@ -78,57 +82,42 @@ namespace gfx
 
                 glBindVertexArray(0);
             }
-    
-            //obj->getTexture()->release();
-        }
-    }
-    /*
-    void Renderer::render(std::shared_ptr<SceneObject> rootObject)
-    {
-        clearScreen();
-
-        glUseProgram(shaderID);
-
-                // Get uniforms location
-        unsigned int transformLoc = glGetUniformLocation(shaderID, "transform");
-
-
-        if (!_activeCamera)
-        {
-            std::cout << "Error: No camera has been set!\n";
-            return;
         }
 
-        for (auto i = 0; i < rootObject->getChildCount(); i++)
-        {
+        // Rendering AABBox
             
-            auto obj = rootObject->getChildAt(i);
-
-            if (obj->getTexture())
+        glUseProgram(AABBoxShaderID);
+        transformLoc = glGetUniformLocation(AABBoxShaderID, "transform");
+        for (auto obj : root)
+        {
+            bool drawAABBOX = true;
+            if (obj->getDrawAABBox())
             {
-                obj->getTexture()->bind();
-            }
+                //glEnable(GL_POLYGON_OFFSET_FILL);
+                //glPolygonOffset(1, 0);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-            if (obj->getRenderComponent())
-            {
-
+                AABBox* aabbox = &obj->getAABBox();
                 glm::mat4 MVP = _activeCamera->getProjectionMatrix() * _activeCamera->getViewMatrix() * obj->getModelMatrix();            
 
+                glLineWidth(5.0f);
+                glEnable(GL_ALIASED_LINE_WIDTH_RANGE);
                 // Ustawiamy matryce obiektu, potem zmienić na MVP
                 glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(MVP));
 
-                glBindVertexArray(obj->getRenderComponent()->getVAO());
+                glBindVertexArray(aabbox->getVAO());
 
-                glDrawElements(GL_TRIANGLES, obj->getRenderComponent()->getIndexCount(), GL_UNSIGNED_INT, 0);
-
+                //glDrawElements(GL_LINES, aabbox->getIndexCount(), GL_UNSIGNED_INT, 0);
+                glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_INT, 0);
+                glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_INT, (GLvoid*)(4*sizeof(unsigned int)));
+                glDrawElements(GL_LINES, 8, GL_UNSIGNED_INT, (GLvoid*)(8*sizeof(unsigned int)));
                 glBindVertexArray(0);
             }
-    
-            obj->getTexture()->release();
-            
         }
+
+
     }
-    */
+    
     void Renderer::setCamera(CameraStatic* camera)
     {
         _activeCamera = camera;

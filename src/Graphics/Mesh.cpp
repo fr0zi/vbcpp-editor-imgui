@@ -10,32 +10,32 @@ Mesh::Mesh()
     _vertices[0].texCoord = glm::vec2(1,0);
 
     _vertices[1].position = glm::vec3( 0.5f,-0.5f,0.5f);
-    _vertices[0].color = glm::vec3( 1.0f, 1.0f, 1.0f);
+    _vertices[1].color = glm::vec3( 1.0f, 1.0f, 1.0f);
     _vertices[1].texCoord = glm::vec2(1,1);
 
     _vertices[2].position = glm::vec3(-0.5f,-0.5f,0.5f);
-    _vertices[0].color = glm::vec3( 1.0f, 1.0f, 1.0f);
+    _vertices[2].color = glm::vec3( 1.0f, 1.0f, 1.0f);
     _vertices[2].texCoord = glm::vec2(0,1);
 
     _vertices[3].position = glm::vec3(-0.5f, 0.5f,0.5f);
-    _vertices[0].color = glm::vec3( 1.0f, 1.0f, 1.0f);
+    _vertices[3].color = glm::vec3( 1.0f, 1.0f, 1.0f);
     _vertices[3].texCoord = glm::vec2(0,0);
 
 
     _vertices[4].position = glm::vec3( 0.5f, 0.5f,-0.5f);
-    _vertices[0].color = glm::vec3( 1.0f, 1.0f, 1.0f);
+    _vertices[4].color = glm::vec3( 1.0f, 1.0f, 1.0f);
     _vertices[4].texCoord = glm::vec2(0,0);
 
     _vertices[5].position = glm::vec3( 0.5f,-0.5f,-0.5f);
-    _vertices[0].color = glm::vec3( 1.0f, 1.0f, 1.0f);
+    _vertices[5].color = glm::vec3( 1.0f, 1.0f, 1.0f);
     _vertices[5].texCoord = glm::vec2(0,1);
 
     _vertices[6].position = glm::vec3(-0.5f,-0.5f,-0.5f);
-    _vertices[0].color = glm::vec3( 1.0f, 1.0f, 1.0f);
+    _vertices[6].color = glm::vec3( 1.0f, 1.0f, 1.0f);
     _vertices[6].texCoord = glm::vec2(1,1);
 
     _vertices[7].position = glm::vec3(-0.5f, 0.5f,-0.5f);
-    _vertices[0].color = glm::vec3( 1.0f, 1.0f, 1.0f);
+    _vertices[7].color = glm::vec3( 1.0f, 1.0f, 1.0f);
     _vertices[7].texCoord = glm::vec2(1,0);
 
     _indices.resize(36);

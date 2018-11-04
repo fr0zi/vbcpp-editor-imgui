@@ -7,6 +7,7 @@
 #include "Transform.h"
 #include "../Graphics/Texture2D.h"
 #include "../Graphics/Mesh.h"
+#include "../Graphics/AABBox.h"
 #include "../Graphics/RenderComponent.h"
 
 class SceneObject;
@@ -22,9 +23,7 @@ class SceneObject : public std::enable_shared_from_this<SceneObject>
         SceneObject(SceneObject* parent = nullptr, std::string name = "SceneObject");
         virtual ~SceneObject();
 
-        void setRenderComponent(std::shared_ptr<gfx::RenderComponent> mesh);
-
-        std::shared_ptr<gfx::RenderComponent> getRenderComponent();
+        gfx::RenderComponent* getRenderComponent();
 
         void setName(std::string name);
 
@@ -55,14 +54,23 @@ class SceneObject : public std::enable_shared_from_this<SceneObject>
 
         glm::vec3& getScaleRef();
 
-        const glm::mat4& getModelMatrix(); 
+        const glm::mat4& getModelMatrix();
+
+        AABBox& getAABBox();
+
+        bool getDrawAABBox();
+
+        void setDrawAABBox(bool state);
 
     protected:
         std::weak_ptr<SceneObject>    _parent;
         SceneObjectList               _children;
 
         std::string                     _name;
-        std::shared_ptr<gfx::RenderComponent> _renderComponent;
+        std::unique_ptr<gfx::RenderComponent> _renderComponent;
+
+        AABBox      _aabbox;
+        bool        _drawAABBox;
 
         glm::mat4 _modelMatrix;
         glm::vec3 _position;
